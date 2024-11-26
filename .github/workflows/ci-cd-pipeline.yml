@@ -13,19 +13,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
       - name: Build Docker image
         run: |
           docker build -t gemini-api .
+
+      - name: Run Docker container
+        run: |
+          docker run -d -p 5000:5000 gemini-api
 
       - name: Run tests
         run: |
@@ -33,7 +30,6 @@ jobs:
           -H "Content-Type: application/json" \
           -d "{\"prompt\": \"Test\", \"instructions\": \"Simple test.\"}"
 
-      - name: Deploy to production (optional)
+      - name: Stop Docker container
         run: |
-          # You can add deployment commands here (e.g., AWS, Heroku, etc.)
-          echo "Deploying the app..."
+          docker ps -q | xargs docker stop
